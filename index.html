@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Umana — Agência de Eventos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="loader">
+    <div class="loader-inner">
+      <span class="loader-text">umana</span>
+      <div class="loader-bar"><div class="loader-fill"></div></div>
+    </div>
+  </div>
+
+  <div id="cursor"></div>
+  <div id="cursor-follower"></div>
+
+  <nav id="nav">
+    <a href="#" class="nav-logo">umana</a>
+    <div class="nav-links">
+      <a href="#about">sobre</a>
+      <a href="#services">serviços</a>
+      <a href="#work">projetos</a>
+      <a href="#contact">contato</a>
+    </div>
+    <a href="#contact" class="nav-cta">fale conosco</a>
+  </nav>
+
+  <section id="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <div class="hero-tag"><span>agência de eventos</span></div>
+      <h1 class="hero-title">
+        <span class="line"><em>Experiências</em></span>
+        <span class="line">que ficam</span>
+        <span class="line">na <em>memória</em></span>
+      </h1>
+      <p class="hero-sub">Criamos eventos que transformam momentos em histórias inesquecíveis.</p>
+      <div class="hero-cta">
+        <a href="#work" class="btn-primary">ver projetos</a>
+        <a href="#about" class="btn-ghost">quem somos</a>
+      </div>
+    </div>
+    <div class="hero-scroll"><span>scroll</span><div class="scroll-line"></div></div>
+    <div class="hero-number">01 / 04</div>
+  </section>
+
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span>Eventos Corporativos</span><span class="dot">·</span>
+      <span>Experiências Imersivas</span><span class="dot">·</span>
+      <span>Lançamentos de Produto</span><span class="dot">·</span>
+      <span>Festas Exclusivas</span><span class="dot">·</span>
+      <span>Convenções</span><span class="dot">·</span>
+      <span>Shows &amp; Festivais</span><span class="dot">·</span>
+      <span>Eventos Corporativos</span><span class="dot">·</span>
+      <span>Experiências Imersivas</span><span class="dot">·</span>
+      <span>Lançamentos de Produto</span><span class="dot">·</span>
+      <span>Festas Exclusivas</span><span class="dot">·</span>
+      <span>Convenções</span><span class="dot">·</span>
+      <span>Shows &amp; Festivais</span><span class="dot">·</span>
+    </div>
+  </div>
+
+  <section id="about">
+    <div class="about-grid">
+      <div class="about-left">
+        <div class="section-label">sobre nós</div>
+        <h2 class="about-title">Somos a <em>Umana</em></h2>
+        <div class="about-visual">
+          <canvas id="about-canvas"></canvas>
+          <div class="about-stat-block">
+            <div class="stat"><span class="stat-num">12+</span><span class="stat-label">anos de mercado</span></div>
+            <div class="stat"><span class="stat-num">500+</span><span class="stat-label">eventos realizados</span></div>
+            <div class="stat"><span class="stat-num">98%</span><span class="stat-label">satisfação</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="about-right">
+        <p class="about-lead">Somos uma agência de eventos com DNA criativo e execução impecável. Transformamos briefings em experiências sensoriais que conectam pessoas, marcas e ideias.</p>
+        <p class="about-body">Nossa equipe multidisciplinar une planejamento estratégico, design de experiência e produção técnica de ponta. Cada evento é uma obra única — do conceito ao last call.</p>
+        <div class="about-tags">
+          <span>Criatividade</span><span>Precisão</span><span>Inovação</span><span>Impacto</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="services">
+    <div class="services-header">
+      <div class="section-label">o que fazemos</div>
+      <h2>Nossos <em>Serviços</em></h2>
+    </div>
+    <div class="services-list">
+      <div class="service-item">
+        <div class="service-num">01</div>
+        <div class="service-info"><h3>Eventos Corporativos</h3><p>Convenções, conferências, reuniões de equipe e lançamentos internos com planejamento estratégico e produção impecável.</p></div>
+        <div class="service-icon"><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="1.5"/><path d="M20 30h20M30 20v20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="service-item">
+        <div class="service-num">02</div>
+        <div class="service-info"><h3>Experiências Imersivas</h3><p>Ativações sensoriais, instalações interativas e experiências de marca que surpreendem e engajam o público.</p></div>
+        <div class="service-icon"><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="1.5"/><path d="M22 22l16 16M38 22L22 38" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="service-item">
+        <div class="service-num">03</div>
+        <div class="service-info"><h3>Lançamentos de Produto</h3><p>Eventos de lançamento que criam buzz, geram mídia espontânea e posicionam sua marca com força no mercado.</p></div>
+        <div class="service-icon"><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="1.5"/><path d="M30 20v20M20 38l10 4 10-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="service-item">
+        <div class="service-num">04</div>
+        <div class="service-info"><h3>Festas &amp; Celebrações</h3><p>Eventos sociais exclusivos com curadoria completa — decoração, entretenimento, gastronomia e tudo mais.</p></div>
+        <div class="service-icon"><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="1.5"/><circle cx="30" cy="30" r="8" stroke="currentColor" stroke-width="1.5"/></svg></div>
+      </div>
+      <div class="service-item">
+        <div class="service-num">05</div>
+        <div class="service-info"><h3>Shows &amp; Festivais</h3><p>Produção de shows ao vivo, festivais culturais e eventos de grande escala com infraestrutura técnica completa.</p></div>
+        <div class="service-icon"><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="1.5"/><path d="M24 24l6-4 6 4v8l-6 4-6-4v-8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="work-header">
+      <div class="section-label">projetos em destaque</div>
+      <h2>Nosso <em>Trabalho</em></h2>
+    </div>
+    <div class="work-grid">
+      <div class="work-item work-item--large">
+        <div class="work-img">
+          <canvas class="work-canvas" data-color="0.8,0.3,0.1"></canvas>
+          <div class="work-overlay"><div class="work-info"><span class="work-cat">Evento Corporativo</span><h3>Summit Global 2024</h3><p>Conferência internacional com 3.000 participantes de 18 países.</p></div></div>
+        </div>
+      </div>
+      <div class="work-item">
+        <div class="work-img">
+          <canvas class="work-canvas" data-color="0.1,0.4,0.8"></canvas>
+          <div class="work-overlay"><div class="work-info"><span class="work-cat">Lançamento de Produto</span><h3>Nova Era</h3><p>Lançamento imersivo com 500 convidados.</p></div></div>
+        </div>
+      </div>
+      <div class="work-item">
+        <div class="work-img">
+          <canvas class="work-canvas" data-color="0.5,0.1,0.7"></canvas>
+          <div class="work-overlay"><div class="work-info"><span class="work-cat">Festival</span><h3>Conexão Fest</h3><p>Festival cultural de 3 dias com 15 atrações.</p></div></div>
+        </div>
+      </div>
+      <div class="work-item work-item--large work-item--right">
+        <div class="work-img">
+          <canvas class="work-canvas" data-color="0.1,0.6,0.4"></canvas>
+          <div class="work-overlay"><div class="work-info"><span class="work-cat">Experiência Imersiva</span><h3>Dimensão Verde</h3><p>Instalação sensorial de sustentabilidade para marca global.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <canvas id="contact-canvas"></canvas>
+    <div class="contact-content">
+      <div class="section-label">vamos criar juntos</div>
+      <h2>Pronto para um<br><em>evento inesquecível?</em></h2>
+      <p>Conte-nos sobre seu projeto e vamos transformá-lo em realidade.</p>
+      <a href="mailto:contato@umana.ag" class="btn-primary btn-large">iniciar projeto</a>
+    </div>
+    <div class="contact-info">
+      <div class="contact-detail"><span class="detail-label">email</span><a href="mailto:contato@umana.ag">contato@umana.ag</a></div>
+      <div class="contact-detail"><span class="detail-label">site</span><a href="https://www.umana.ag" target="_blank">www.umana.ag</a></div>
+      <div class="contact-detail"><span class="detail-label">instagram</span><a href="https://instagram.com/umana.ag" target="_blank">@umana.ag</a></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-logo">umana</span>
+      <span class="footer-copy">© 2024 Umana Agência de Eventos. Todos os direitos reservados.</span>
+      <div class="footer-links"><a href="#">Instagram</a><a href="#">LinkedIn</a><a href="#">Behance</a></div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
