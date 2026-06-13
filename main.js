@@ -1,423 +1,590 @@
+/* ============================
+   UMANA — MAIN.JS
+   GSAP + Three.js Interactive Site
+   ============================ */
+
+'use strict';
+
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-const cursor = document.getElementById('cursor');
-const cursorFollower = document.getElementById('cursor-follower');
-let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
+// ============================
+// CURSOR
+// ============================
+(function initCursor() {
+  const dot  = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  if (!dot || !ring) return;
 
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-  gsap.set(cursor, { x: mouseX, y: mouseY });
-});
+  let mouseX = 0, mouseY = 0;
+  let followerX = 0, followerY = 0;
 
-function animateFollower() {
-  followerX += (mouseX - followerX) * 0.1;
-  followerY += (mouseY - followerY) * 0.1;
-  gsap.set(cursorFollower, { x: followerX, y: followerY });
-  requestAnimationFrame(animateFollower);
-}
-animateFollower();
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    dot.style.left = mouseX + 'px';
+    dot.style.top  = mouseY + 'px';
+  });
 
-document.querySelectorAll('a, button, .service-item, .work-item').forEach(el => {
-  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
-  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
-});
-
-const loaderTl = gsap.timeline({
-  onComplete: () => {
-    document.getElementById('loader').style.display = 'none';
-    initAnimations();
+  function tickFollower() {
+    followerX += (mouseX - followerX) * 0.10;
+    followerY += (mouseY - followerY) * 0.10;
+    ring.style.left = followerX + 'px';
+    ring.style.top  = followerY + 'px';
+    requestAnimationFrame(tickFollower);
   }
+  tickFollower();
+
+  document.querySelectorAll('.interactive, a, button').forEach((el) => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('cursor-expanded'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-expanded'));
+  });
+})();
+
+// ============================
+// LOADER → init everything
+// ============================
+window.addEventListener('load', function () {
+  const loader = document.getElementById('loader');
+  if (!loader) { initAll(); return; }
+
+  gsap.to(loader, {
+    opacity: 0,
+    duration: 0.8,
+    delay: 1.0,
+    ease: 'power2.out',
+    onComplete: () => {
+      loader.style.display = 'none';
+      initAll();
+    }
+  });
 });
 
-loaderTl
-  .to('.loader-fill', { width: '100%', duration: 1.8, ease: 'power2.inOut' })
-  .to('#loader', { opacity: 0, duration: 0.5, ease: 'power2.out' }, '-=0.1');
+function initAll() {
+  initNav();
+  initHeroAnimations();
+  initHeroThree();
+  initAboutThree();
+  initContactThree();
+  initScrollReveal();
+  initStatCounter();
+  initAccordion();
+  initWorkCards();
+  initSmoothScroll();
+  initMagneticButtons();
+  initHeroParallax();
+}
 
-function initHeroCanvas() {
+// ============================
+// NAV
+// ============================
+function initNav() {
+  const nav = document.getElementById('nav');
+  if (!nav) return;
+
+  // Start with is-hero (hero is dark)
+  nav.classList.add('is-hero');
+
+  gsap.from(nav, { y: -80, opacity: 0, duration: 0.9, ease: 'power3.out', delay: 1.3 });
+
+  // White text while hero is in view
+  ScrollTrigger.create({
+    trigger: '#hero',
+    start: 'top top',
+    end: 'bottom top',
+    onEnter:     () => nav.classList.add('is-hero'),
+    onLeave:     () => nav.classList.remove('is-hero'),
+    onEnterBack: () => nav.classList.add('is-hero'),
+    onLeaveBack: () => nav.classList.remove('is-hero')
+  });
+
+  // Frosted glass after scroll
+  ScrollTrigger.create({
+    start: 'top -60px',
+    onEnter:     () => nav.classList.add('is-scrolled'),
+    onLeaveBack: () => nav.classList.remove('is-scrolled')
+  });
+}
+
+// ============================
+// HERO ANIMATIONS
+// ============================
+function initHeroAnimations() {
+  const label   = document.querySelector('.hero-label');
+  const lines   = document.querySelectorAll('.hero-title .line > span');
+  const hint    = document.querySelector('.hero-scroll-hint');
+  const explore = document.querySelector('.hero-cta-explore');
+
+  const tl = gsap.timeline({ delay: 0.2 });
+
+  if (label) {
+    tl.to(label, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.2);
+  }
+  if (lines.length) {
+    tl.to(lines, { y: '0%', duration: 1.2, ease: 'power4.out', stagger: 0.12 }, 0.35);
+  }
+  if (hint) {
+    tl.to(hint, { opacity: 1, duration: 0.7, ease: 'power2.out' }, 1.2);
+  }
+  if (explore) {
+    tl.to(explore, { opacity: 1, duration: 0.7, ease: 'power2.out' }, 1.35);
+  }
+}
+
+// ============================
+// THREE.JS — HERO TERRAIN
+// Atmospheric landscape: animated terrain plane with warm amber highlights
+// ============================
+function initHeroThree() {
   const canvas = document.getElementById('hero-canvas');
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x000000, 0);
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.setClearColor(0x08060A, 1);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.z = 3;
+  scene.fog = new THREE.FogExp2(0x100810, 0.055);
 
-  const count = 4000;
-  const geo = new THREE.BufferGeometry();
-  const positions = new Float32Array(count * 3);
-  const sizes = new Float32Array(count);
+  const camera = new THREE.PerspectiveCamera(65, 1, 0.1, 200);
+  camera.position.set(0, 5, 14);
+  camera.lookAt(0, -1, 0);
 
-  for (let i = 0; i < count; i++) {
-    positions[i * 3]     = (Math.random() - 0.5) * 12;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 12;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
-    sizes[i] = Math.random() * 2 + 0.5;
-  }
+  // Animated terrain
+  const vShader = `
+    uniform float uTime;
+    varying float vElevation;
 
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    void main() {
+      vec3 pos = position;
+      float e = sin(pos.x * 0.22 + uTime * 0.28) * 1.5
+              + cos(pos.z * 0.18 - uTime * 0.20) * 1.2
+              + sin(pos.x * 0.45 + pos.z * 0.38 + uTime * 0.35) * 0.55
+              + cos(pos.x * 0.12 - pos.z * 0.22 + uTime * 0.15) * 0.9;
+      pos.y += e;
+      vElevation = e;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    }
+  `;
+
+  const fShader = `
+    varying float vElevation;
+
+    void main() {
+      float t = clamp((vElevation + 2.8) / 5.6, 0.0, 1.0);
+      vec3 deep = vec3(0.045, 0.030, 0.038);
+      vec3 mid  = vec3(0.14,  0.078, 0.048);
+      vec3 high = vec3(0.91,  0.38,  0.10);
+      vec3 col;
+      if (t < 0.62) {
+        col = mix(deep, mid, t / 0.62);
+      } else {
+        col = mix(mid, high, (t - 0.62) / 0.38);
+      }
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  const geo = new THREE.PlaneGeometry(55, 44, 90, 70);
+  geo.rotateX(-Math.PI / 2);
 
   const mat = new THREE.ShaderMaterial({
-    uniforms: {
-      uTime: { value: 0 },
-      uMouse: { value: new THREE.Vector2(0, 0) },
-      uColor: { value: new THREE.Color(0xc9a96e) },
-    },
-    vertexShader: `
-      attribute float size;
-      uniform float uTime;
-      uniform vec2 uMouse;
-      varying float vAlpha;
-      void main() {
-        vec3 pos = position;
-        float dist = distance(pos.xy, uMouse * 6.0);
-        pos.z += sin(uTime * 0.5 + pos.x * 0.3 + pos.y * 0.3) * 0.3;
-        pos.x += sin(uTime * 0.3 + pos.z) * 0.05;
-        pos.y += cos(uTime * 0.3 + pos.z) * 0.05;
-        float repel = smoothstep(3.0, 0.0, dist);
-        pos.z += repel * 1.5;
-        vAlpha = 0.3 + 0.4 * (1.0 - abs(pos.z) / 4.0);
-        vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
-        gl_PointSize = size * (250.0 / -mvPos.z);
-        gl_Position = projectionMatrix * mvPos;
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 uColor;
-      varying float vAlpha;
-      void main() {
-        float d = distance(gl_PointCoord, vec2(0.5));
-        if (d > 0.5) discard;
-        float alpha = smoothstep(0.5, 0.0, d) * vAlpha;
-        gl_FragColor = vec4(uColor, alpha);
-      }
-    `,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
+    vertexShader: vShader,
+    fragmentShader: fShader,
+    uniforms: { uTime: { value: 0 } }
   });
 
-  const particles = new THREE.Points(geo, mat);
-  scene.add(particles);
+  const terrain = new THREE.Mesh(geo, mat);
+  terrain.position.y = -3.5;
+  scene.add(terrain);
 
-  const torusGeo = new THREE.TorusKnotGeometry(1.2, 0.35, 120, 18, 2, 3);
-  const torusMat = new THREE.MeshBasicMaterial({ color: 0x1a1a1a, wireframe: true, transparent: true, opacity: 0.5 });
-  const torus = new THREE.Mesh(torusGeo, torusMat);
-  torus.position.set(4, 0, -1);
-  scene.add(torus);
-
-  const mouse = new THREE.Vector2();
-  window.addEventListener('mousemove', e => {
-    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-  });
-
-  const clock = new THREE.Clock();
-  function render() {
-    const t = clock.getElapsedTime();
-    mat.uniforms.uTime.value = t;
-    mat.uniforms.uMouse.value.lerp(mouse, 0.05);
-    particles.rotation.y = t * 0.03;
-    torus.rotation.x = t * 0.3;
-    torus.rotation.y = t * 0.2;
-    renderer.render(scene, camera);
-    requestAnimationFrame(render);
+  // Sparse stars
+  const starCount = 600;
+  const starPos   = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount; i++) {
+    starPos[i * 3]     = (Math.random() - 0.5) * 80;
+    starPos[i * 3 + 1] = Math.random() * 18 + 3;
+    starPos[i * 3 + 2] = (Math.random() - 0.5) * 50;
   }
-  render();
-
-  window.addEventListener('resize', () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+  const starGeo = new THREE.BufferGeometry();
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  const starMat = new THREE.PointsMaterial({
+    color: 0xFFDDCC,
+    size: 0.055,
+    transparent: true,
+    opacity: 0.35,
+    sizeAttenuation: true
   });
+  scene.add(new THREE.Points(starGeo, starMat));
+
+  let targetX = 0, targetY = 0;
+  document.addEventListener('mousemove', (e) => {
+    targetX = (e.clientX / window.innerWidth  - 0.5) * 2;
+    targetY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function animate(t) {
+    requestAnimationFrame(animate);
+    const elapsed = t * 0.001;
+    mat.uniforms.uTime.value = elapsed;
+    camera.position.x += (targetX * 1.8 - camera.position.x) * 0.018;
+    camera.position.y += (5 - targetY * 0.6 - camera.position.y) * 0.018;
+    camera.lookAt(0, -1, 0);
+    renderer.render(scene, camera);
+  }
+  animate(0);
 }
 
-function initAboutCanvas() {
+// ============================
+// THREE.JS — ABOUT MORPHING SPHERE
+// ============================
+function initAboutThree() {
   const canvas = document.getElementById('about-canvas');
-  if (!canvas) return;
-  const w = canvas.offsetWidth || 600;
-  const h = canvas.offsetHeight || 450;
+  if (!canvas || typeof THREE === 'undefined') return;
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(w, h);
-  renderer.setClearColor(0x1a1a1a, 1);
+  renderer.setClearColor(0xF4F1EB, 1);
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
-  camera.position.z = 3.5;
-
-  const sGeo = new THREE.SphereGeometry(1.4, 64, 64);
-  const sMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(0xc9a96e) } },
-    vertexShader: `
-      uniform float uTime;
-      varying vec3 vNormal;
-      varying float vDisplace;
-      void main() {
-        vNormal = normal;
-        float d = sin(position.x * 2.0 + uTime) * 0.15
-                + sin(position.y * 2.5 + uTime * 0.7) * 0.1
-                + sin(position.z * 2.0 + uTime * 1.2) * 0.12;
-        vDisplace = d;
-        vec3 pos = position + normal * d;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 uColor;
-      varying vec3 vNormal;
-      varying float vDisplace;
-      void main() {
-        vec3 light = normalize(vec3(1.0, 1.0, 1.0));
-        float diff = dot(vNormal, light) * 0.5 + 0.5;
-        vec3 baseColor = mix(vec3(0.08, 0.08, 0.08), uColor, diff * (0.4 + vDisplace * 2.0));
-        gl_FragColor = vec4(baseColor, 1.0);
-      }
-    `,
-  });
-
-  const sphere = new THREE.Mesh(sGeo, sMat);
-  scene.add(sphere);
-
-  const clock = new THREE.Clock();
-  function render() {
-    sMat.uniforms.uTime.value = clock.getElapsedTime();
-    sphere.rotation.y += 0.003;
-    sphere.rotation.x = Math.sin(clock.getElapsedTime() * 0.2) * 0.1;
-    renderer.render(scene, camera);
-    requestAnimationFrame(render);
-  }
-  render();
-}
-
-function initWorkCanvases() {
-  document.querySelectorAll('.work-canvas').forEach(canvas => {
-    const [r, g, b] = (canvas.dataset.color || '0.5,0.5,0.5').split(',').map(Number);
-
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x111111, 1);
-
-    const w = canvas.offsetWidth || 400;
-    const h = canvas.offsetHeight || 300;
-    renderer.setSize(w, h);
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
-    camera.position.z = 2.5;
-
-    new ResizeObserver(() => {
-      renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
-      camera.aspect = canvas.offsetWidth / canvas.offsetHeight;
-      camera.updateProjectionMatrix();
-    }).observe(canvas);
-
-    const geo = new THREE.PlaneGeometry(4, 4, 32, 32);
-    const mat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(r, g, b) } },
-      vertexShader: `
-        uniform float uTime;
-        varying vec2 vUv;
-        varying float vElevation;
-        void main() {
-          vUv = uv;
-          float elev = sin(position.x * 2.0 + uTime) * 0.15
-                     + sin(position.y * 3.0 + uTime * 0.8) * 0.1;
-          vElevation = elev;
-          vec3 pos = position;
-          pos.z += elev;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 uColor;
-        varying vec2 vUv;
-        varying float vElevation;
-        void main() {
-          vec3 col = mix(vec3(0.05), uColor, vElevation + 0.3);
-          float gx = step(0.97, fract(vUv.x * 8.0));
-          float gy = step(0.97, fract(vUv.y * 8.0));
-          col = mix(col, uColor * 0.5, (gx + gy) * 0.4);
-          gl_FragColor = vec4(col, 1.0);
-        }
-      `,
-    });
-
-    const plane = new THREE.Mesh(geo, mat);
-    plane.rotation.x = -0.5;
-    scene.add(plane);
-
-    const clock = new THREE.Clock();
-    function render() {
-      mat.uniforms.uTime.value = clock.getElapsedTime();
-      plane.rotation.z += 0.001;
-      renderer.render(scene, camera);
-      requestAnimationFrame(render);
-    }
-    render();
-  });
-}
-
-function initContactCanvas() {
-  const canvas = document.getElementById('contact-canvas');
-  if (!canvas) return;
-
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, canvas.offsetHeight || 600);
-  renderer.setClearColor(0x000000, 0);
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / (canvas.offsetHeight || 600), 0.1, 100);
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
   camera.position.z = 4;
 
-  const rings = [];
-  for (let i = 0; i < 5; i++) {
-    const geo = new THREE.TorusGeometry(1.2 + i * 0.4, 0.008, 4, 120);
-    const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xc9a96e), transparent: true, opacity: 0.15 + i * 0.05 });
-    const ring = new THREE.Mesh(geo, mat);
-    ring.rotation.x = Math.PI * 0.3 + i * 0.15;
-    ring.rotation.y = i * 0.3;
-    scene.add(ring);
-    rings.push({ mesh: ring, speed: 0.003 + i * 0.002, axis: i % 2 === 0 ? 'x' : 'y' });
-  }
+  const vShader = `
+    uniform float uTime;
+    varying vec3 vNormal;
+    varying float vDisplace;
 
-  const pCount = 800;
-  const pGeo = new THREE.BufferGeometry();
-  const pPos = new Float32Array(pCount * 3);
-  for (let i = 0; i < pCount; i++) {
-    const theta = Math.random() * Math.PI * 2;
-    const r = 0.5 + Math.random() * 1.5;
-    pPos[i * 3]     = Math.cos(theta) * r;
-    pPos[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
-    pPos[i * 3 + 2] = Math.sin(theta) * r;
-  }
-  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({
-    color: 0xc9a96e, size: 0.015, transparent: true, opacity: 0.6,
-    blending: THREE.AdditiveBlending, depthWrite: false,
-  })));
+    float noise(vec3 p) {
+      return sin(p.x * 2.3 + uTime * 0.6)
+           * cos(p.y * 2.1 + uTime * 0.5)
+           * sin(p.z * 1.9 + uTime * 0.4);
+    }
 
-  const clock = new THREE.Clock();
-  function render() {
-    const t = clock.getElapsedTime();
-    rings.forEach(({ mesh, speed, axis }) => {
-      mesh.rotation[axis] += speed;
-      mesh.rotation.z = Math.sin(t * 0.3) * 0.1;
-    });
-    renderer.render(scene, camera);
-    requestAnimationFrame(render);
-  }
-  render();
+    void main() {
+      vNormal = normal;
+      float d = noise(position) * 0.22;
+      vDisplace = d;
+      vec3 newPos = position + normal * d;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
+    }
+  `;
 
-  window.addEventListener('resize', () => {
-    renderer.setSize(window.innerWidth, canvas.offsetHeight);
-    camera.aspect = window.innerWidth / canvas.offsetHeight;
+  const fShader = `
+    uniform float uTime;
+    varying vec3 vNormal;
+    varying float vDisplace;
+
+    void main() {
+      vec3 cOrange = vec3(0.91, 0.38, 0.10);
+      vec3 cCream  = vec3(0.96, 0.94, 0.91);
+      float t = clamp(vDisplace * 2.0 + 0.5, 0.0, 1.0);
+      vec3 col = mix(cCream, cOrange, t);
+      float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.5);
+      col = mix(col, cOrange, fresnel * 0.45);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  const geo = new THREE.SphereGeometry(1.5, 64, 64);
+  const mat = new THREE.ShaderMaterial({
+    vertexShader: vShader,
+    fragmentShader: fShader,
+    uniforms: { uTime: { value: 0 } }
+  });
+
+  scene.add(new THREE.Mesh(geo, mat));
+
+  function resize() {
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
     camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let raf = null;
+  function animate(t) {
+    raf = requestAnimationFrame(animate);
+    mat.uniforms.uTime.value = t * 0.001;
+    scene.children[0].rotation.y += 0.003;
+    scene.children[0].rotation.x += 0.001;
+    renderer.render(scene, camera);
+  }
+  animate(0);
+
+  ScrollTrigger.create({
+    trigger: '#about',
+    onEnter:     () => { if (!raf) animate(performance.now()); },
+    onLeave:     () => { cancelAnimationFrame(raf); raf = null; },
+    onEnterBack: () => { if (!raf) animate(performance.now()); },
+    onLeaveBack: () => { cancelAnimationFrame(raf); raf = null; }
   });
 }
 
-function initNav() {
-  const nav = document.getElementById('nav');
-  ScrollTrigger.create({
-    start: 100,
-    onEnter: () => nav.classList.add('scrolled'),
-    onLeaveBack: () => nav.classList.remove('scrolled'),
+// ============================
+// THREE.JS — CONTACT TORUS RINGS
+// ============================
+function initContactThree() {
+  const canvas = document.getElementById('contact-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  camera.position.z = 6;
+
+  const rings = [];
+  [
+    { r: 2.0, tube: 0.018, opacity: 0.30, sx: 0.004,  sy: 0.007  },
+    { r: 3.1, tube: 0.012, opacity: 0.18, sx: -0.003, sy: 0.005  },
+    { r: 1.3, tube: 0.022, opacity: 0.22, sx: 0.006,  sy: -0.004 }
+  ].forEach((cfg) => {
+    const geo  = new THREE.TorusGeometry(cfg.r, cfg.tube, 16, 120);
+    const mat  = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: cfg.opacity });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = Math.random() * Math.PI;
+    mesh.rotation.y = Math.random() * Math.PI;
+    mesh._sx = cfg.sx;
+    mesh._sy = cfg.sy;
+    scene.add(mesh);
+    rings.push(mesh);
   });
 
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        gsap.to(window, { duration: 1.2, scrollTo: target, ease: 'power3.inOut' });
+  function resize() {
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    rings.forEach((r) => { r.rotation.x += r._sx; r.rotation.y += r._sy; });
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+
+// ============================
+// SCROLL REVEAL
+// ============================
+function initScrollReveal() {
+  document.querySelectorAll(
+    '.section-tag, .section-title, .about-lead, .about-body, .contact-title, .contact-sub, .footer-copy'
+  ).forEach((el) => {
+    gsap.from(el, {
+      y: 50,
+      opacity: 0,
+      duration: 0.9,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: el,
+        start: 'top 88%',
+        toggleActions: 'play none none none'
+      }
+    });
+  });
+
+  // Statement quote — word reveal
+  const quote = document.querySelector('.statement-quote');
+  if (quote) {
+    const words = quote.textContent.trim().split(/\s+/);
+    quote.innerHTML = words.map(
+      w => `<span style="display:inline-block;overflow:hidden"><span style="display:inline-block">${w}</span></span>`
+    ).join(' ');
+
+    gsap.from(quote.querySelectorAll('span > span'), {
+      y: '100%',
+      opacity: 0,
+      duration: 0.7,
+      ease: 'power3.out',
+      stagger: 0.035,
+      scrollTrigger: { trigger: quote, start: 'top 82%', toggleActions: 'play none none none' }
+    });
+
+    const attr = document.querySelector('.statement-attr');
+    if (attr) {
+      gsap.from(attr, {
+        y: 20, opacity: 0, duration: 0.7, ease: 'power3.out', delay: 0.25,
+        scrollTrigger: { trigger: quote, start: 'top 82%', toggleActions: 'play none none none' }
+      });
+    }
+  }
+
+  // About pills stagger
+  const pills = document.querySelectorAll('.about-pills span');
+  if (pills.length) {
+    gsap.from(pills, {
+      y: 20, opacity: 0, duration: 0.5, ease: 'power3.out', stagger: 0.07,
+      scrollTrigger: { trigger: '.about-pills', start: 'top 88%', toggleActions: 'play none none none' }
+    });
+  }
+}
+
+// ============================
+// STAT COUNTER
+// ============================
+function initStatCounter() {
+  document.querySelectorAll('.stat-n[data-target]').forEach((el) => {
+    const target = parseInt(el.getAttribute('data-target'), 10);
+    const suffix = el.dataset.suffix || '';
+    const obj    = { val: 0 };
+    gsap.to(obj, {
+      val: target,
+      duration: 1.8,
+      ease: 'power2.out',
+      snap: { val: 1 },
+      onUpdate: () => { el.textContent = Math.round(obj.val) + suffix; },
+      scrollTrigger: {
+        trigger: el,
+        start: 'top 85%',
+        toggleActions: 'play none none none'
       }
     });
   });
 }
 
-function initHeroAnimations() {
-  const tl = gsap.timeline({ delay: 0.3 });
-  tl.to('.hero-tag', { opacity: 1, duration: 0.8, ease: 'power2.out' })
-    .to('.hero-title .line span', { y: '0%', duration: 1.2, ease: 'power4.out', stagger: 0.1 }, '-=0.4')
-    .to('.hero-sub', { opacity: 1, duration: 0.8, ease: 'power2.out' }, '-=0.6')
-    .to('.hero-cta', { opacity: 1, duration: 0.8, ease: 'power2.out' }, '-=0.5')
-    .to(['.hero-scroll', '.hero-number'], { opacity: 1, duration: 0.8 }, '-=0.4');
-}
+// ============================
+// ACCORDION
+// ============================
+function initAccordion() {
+  const items = document.querySelectorAll('.acc-item');
+  if (!items.length) return;
 
-function initScrollAnimations() {
-  gsap.from('.about-title', { scrollTrigger: { trigger: '#about', start: 'top 75%' }, y: 60, opacity: 0, duration: 1, ease: 'power3.out' });
-  gsap.from('.about-lead, .about-body', { scrollTrigger: { trigger: '#about', start: 'top 65%' }, y: 40, opacity: 0, duration: 1, ease: 'power3.out', stagger: 0.2 });
-  gsap.from('.about-tags span', { scrollTrigger: { trigger: '.about-tags', start: 'top 80%' }, y: 20, opacity: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out' });
-  gsap.from('.about-visual', { scrollTrigger: { trigger: '.about-visual', start: 'top 80%' }, y: 60, opacity: 0, duration: 1.2, ease: 'power3.out' });
-  gsap.from('.stat', { scrollTrigger: { trigger: '.about-stat-block', start: 'top 90%' }, y: 20, opacity: 0, duration: 0.8, stagger: 0.15, ease: 'power3.out' });
-  gsap.from('.services-header h2', { scrollTrigger: { trigger: '#services', start: 'top 75%' }, y: 50, opacity: 0, duration: 1, ease: 'power3.out' });
-  gsap.from('.service-item', { scrollTrigger: { trigger: '.services-list', start: 'top 80%' }, x: -40, opacity: 0, duration: 0.8, stagger: 0.12, ease: 'power3.out' });
-  gsap.from('.work-header h2', { scrollTrigger: { trigger: '#work', start: 'top 75%' }, y: 50, opacity: 0, duration: 1, ease: 'power3.out' });
-  gsap.from('.work-item', { scrollTrigger: { trigger: '.work-grid', start: 'top 80%' }, y: 60, opacity: 0, duration: 1, stagger: 0.15, ease: 'power3.out' });
-  gsap.from('.contact-content h2, .contact-content p, .contact-content .btn-primary', { scrollTrigger: { trigger: '#contact', start: 'top 70%' }, y: 50, opacity: 0, duration: 1, stagger: 0.15, ease: 'power3.out' });
-  gsap.from('.contact-detail', { scrollTrigger: { trigger: '.contact-info', start: 'top 85%' }, y: 30, opacity: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' });
-
-  gsap.to('.hero-content', {
-    scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true },
-    y: 150, opacity: 0,
+  // Set initial heights
+  items.forEach((item) => {
+    const body = item.querySelector('.acc-body');
+    if (!body) return;
+    body.style.height = item.classList.contains('is-open') ? body.scrollHeight + 'px' : '0px';
   });
 
-  ScrollTrigger.create({
-    trigger: '.about-stat-block',
-    start: 'top 85%',
-    onEnter: () => {
-      const counters = [
-        { el: document.querySelectorAll('.stat-num')[0], target: 12, suffix: '+', duration: 1.5 },
-        { el: document.querySelectorAll('.stat-num')[1], target: 500, suffix: '+', duration: 2 },
-        { el: document.querySelectorAll('.stat-num')[2], target: 98, suffix: '%', duration: 1.8 },
-      ];
-      counters.forEach(({ el, target, suffix, duration }) => {
-        if (!el) return;
-        const obj = { val: 0 };
-        gsap.to(obj, { val: target, duration, ease: 'power2.out', onUpdate: () => { el.textContent = Math.round(obj.val) + suffix; } });
+  items.forEach((item) => {
+    const trigger = item.querySelector('.acc-trigger');
+    const body    = item.querySelector('.acc-body');
+    if (!trigger || !body) return;
+
+    trigger.addEventListener('click', () => {
+      const isOpen = item.classList.contains('is-open');
+
+      // Close all others
+      items.forEach((other) => {
+        if (other === item || !other.classList.contains('is-open')) return;
+        other.classList.remove('is-open');
+        const ob = other.querySelector('.acc-body');
+        const ot = other.querySelector('.acc-trigger');
+        if (ob) gsap.to(ob, { height: 0, duration: 0.45, ease: 'power3.inOut' });
+        if (ot) ot.setAttribute('aria-expanded', 'false');
       });
-    },
+
+      // Toggle this one
+      if (isOpen) {
+        item.classList.remove('is-open');
+        trigger.setAttribute('aria-expanded', 'false');
+        gsap.to(body, { height: 0, duration: 0.45, ease: 'power3.inOut' });
+      } else {
+        item.classList.add('is-open');
+        trigger.setAttribute('aria-expanded', 'true');
+        body.style.height = 'auto';
+        const h = body.scrollHeight;
+        body.style.height = '0px';
+        gsap.to(body, { height: h, duration: 0.5, ease: 'power3.inOut' });
+      }
+    });
+  });
+
+  // Scroll reveal
+  gsap.from(items, {
+    y: 30, opacity: 0, duration: 0.6, ease: 'power3.out', stagger: 0.07,
+    scrollTrigger: { trigger: '.accordion', start: 'top 88%', toggleActions: 'play none none none' }
   });
 }
 
-function initMagnetic() {
-  document.querySelectorAll('.btn-primary, .nav-cta').forEach(btn => {
-    btn.addEventListener('mousemove', e => {
+// ============================
+// WORK CARDS
+// ============================
+function initWorkCards() {
+  const cards = document.querySelectorAll('.work-card');
+  if (!cards.length) return;
+
+  gsap.from(cards, {
+    y: 80,
+    opacity: 0,
+    duration: 0.85,
+    ease: 'power3.out',
+    stagger: 0.12,
+    scrollTrigger: {
+      trigger: '.work-grid',
+      start: 'top 82%',
+      toggleActions: 'play none none none'
+    }
+  });
+}
+
+// ============================
+// SMOOTH SCROLL
+// ============================
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener('click', (e) => {
+      const href = anchor.getAttribute('href');
+      if (href === '#') return;
+      const target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      gsap.to(window, {
+        scrollTo: { y: target, offsetY: 72 },
+        duration: 1.2,
+        ease: 'power3.inOut'
+      });
+    });
+  });
+}
+
+// ============================
+// MAGNETIC BUTTONS
+// ============================
+function initMagneticButtons() {
+  document.querySelectorAll('.contact-btn, .nav-cta').forEach((btn) => {
+    btn.addEventListener('mousemove', (e) => {
       const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-      gsap.to(btn, { x: x * 0.3, y: y * 0.3, duration: 0.3, ease: 'power2.out' });
+      const dx = (e.clientX - (rect.left + rect.width  / 2)) * 0.35;
+      const dy = (e.clientY - (rect.top  + rect.height / 2)) * 0.35;
+      gsap.to(btn, { x: dx, y: dy, duration: 0.35, ease: 'power2.out' });
     });
     btn.addEventListener('mouseleave', () => {
-      gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+      gsap.to(btn, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
     });
   });
 }
 
-function initServiceInteractions() {
-  document.querySelectorAll('.service-item').forEach(item => {
-    item.addEventListener('mouseenter', function() { gsap.to(this.querySelector('h3'), { x: 8, duration: 0.3, ease: 'power2.out' }); });
-    item.addEventListener('mouseleave', function() { gsap.to(this.querySelector('h3'), { x: 0, duration: 0.4, ease: 'power2.out' }); });
+// ============================
+// HERO PARALLAX ON SCROLL
+// ============================
+function initHeroParallax() {
+  const heroContent = document.querySelector('.hero-content');
+  if (!heroContent) return;
+
+  gsap.to(heroContent, {
+    y: 120,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '#hero',
+      start: 'top top',
+      end: 'bottom top',
+      scrub: true
+    }
   });
 }
-
-function initAnimations() {
-  initHeroCanvas();
-  initAboutCanvas();
-  initWorkCanvases();
-  initContactCanvas();
-  initNav();
-  initHeroAnimations();
-  initScrollAnimations();
-  initMagnetic();
-  initServiceInteractions();
-}
-
-document.querySelectorAll('.hero-title .line').forEach(line => {
-  line.innerHTML = `<span style="display:block">${line.innerHTML}</span>`;
-});
